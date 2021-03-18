@@ -91,15 +91,12 @@ class EventsSessionTest(SessionTest):
                 'https://events.pagerduty.com/v2/enqueue',
                 parent.request.call_args[0][1])
             self.assertDictContainsSubset(
-                {'Content-Type': 'application/json'},
-                parent.request.call_args[1]['headers'])
-            self.assertNotIn(
-                'X-Routing-Key',
+                {'Content-Type': 'application/json',
+                 'X-Routing-Key': 'routingkey'},
                 parent.request.call_args[1]['headers'])
             self.assertEqual(
                 {
                     'event_action':'trigger',
-                    'routing_key':'routingkey',
                     'payload':{
                         'summary': 'testing 123',
                         'source': 'triggered.from.pdpyras',
@@ -111,20 +108,12 @@ class EventsSessionTest(SessionTest):
                 parent.request.call_args[1]['json'])
             ddk = sess.resolve('abc123')
             self.assertEqual(
-                {
-                    'event_action':'resolve',
-                    'dedup_key':'abc123',
-                    'routing_key':'routingkey',
-                },
+                {'event_action':'resolve', 'dedup_key':'abc123'},
                 parent.request.call_args[1]['json'])
 
             ddk = sess.acknowledge('abc123')
             self.assertEqual(
-                {
-                    'event_action':'acknowledge',
-                    'dedup_key':'abc123',
-                    'routing_key':'routingkey',
-                },
+                {'event_action':'acknowledge', 'dedup_key':'abc123'},
                 parent.request.call_args[1]['json'])
 
 class APISessionTest(SessionTest):

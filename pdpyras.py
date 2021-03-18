@@ -212,7 +212,7 @@ def tokenize_url_path(url, baseurl='https://api.pagerduty.com'):
     :type method: str
     :type url: str
     :type baseurl: str
-    :rtype: tuple
+    :rtype: tuple 
     """
     urlnparams = url.split('#')[0].split('?') # Ignore all #'s / params
     url_nodes = urlnparams[0].lstrip('/').split('/')
@@ -237,7 +237,7 @@ def tokenize_url_path(url, baseurl='https://api.pagerduty.com'):
     # Tokenize / classify the URL now:
     tokenized_nodes = [path_nodes[0]]
     if len(path_nodes) >= 3:
-        # It's an endpoint like one of the following
+        # It's an endpoint like one of the following 
         # /{resource}/{id}/{sub-resource}
         # We're interested in {resource} and {sub_resource}.
         # More deeply-nested endpoints not known to exist.
@@ -341,7 +341,7 @@ class PDSession(requests.Session):
 
     * ``-1`` to retry infinitely
     * ``0`` to return the `requests.Response`_ object and exit (which is the
-      default behavior)
+      default behavior) 
     * ``n``, where ``n > 0``, to retry ``n`` times (or up
       to :attr:`max_http_attempts` total for all statuses, whichever is
       encountered first), and raise a :class:`PDClientError` after that many
@@ -610,7 +610,7 @@ class PDSession(requests.Session):
     def stagger_cooldown(self, val):
         if type(val) not in [float, int] or val<0:
             raise ValueError("Cooldown randomization factor stagger_cooldown "
-                "must be a positive real number")
+                "must be a positive real number") 
         self._stagger_cooldown = val
 
     @property
@@ -643,7 +643,7 @@ class EventsAPISession(PDSession):
 
     @property
     def auth_header(self):
-        return {}
+        return {'X-Routing-Key': self.api_key}
 
     def acknowledge(self, dedup_key):
         """
@@ -692,16 +692,10 @@ class EventsAPISession(PDSession):
         :returns:
             The deduplication key of the incident, if any.
         """
-
         actions = ('trigger', 'acknowledge', 'resolve')
         if action not in actions:
             raise ValueError("Event action must be one of: "+', '.join(actions))
-
-        event = {
-            'event_action':action,
-            'routing_key': self.api_key
-        }
-
+        event = {'event_action':action}
         event.update(properties)
         if isinstance(dedup_key, string_types):
             event['dedup_key'] = dedup_key
@@ -804,7 +798,7 @@ class APISession(PDSession):
     :members:
     """
 
-    api_call_counts = None
+    api_call_counts = None 
     """A dict object recording the number of API calls per endpoint"""
 
     api_time = None
@@ -841,7 +835,7 @@ class APISession(PDSession):
     @property
     def auth_type(self):
         """
-        Defines the method of API authentication.
+        Defines the method of API authentication. 
 
         By default this is "token"; if "oauth2", the API key will be used.
         """
@@ -924,12 +918,12 @@ class APISession(PDSession):
         query_params.update({'query':query})
         # When determining uniqueness, web/the API doesn't care about case.
         simplify = lambda s: s.lower()
-        search_term = simplify(query)
+        search_term = simplify(query) 
         equiv = lambda s: simplify(s[attribute]) == search_term
         obj_iter = self.iter_all(resource, params=query_params)
         return next(iter(filter(equiv, obj_iter)), None)
 
-    def iter_all(self, path, params=None, paginate=True, page_size=None,
+    def iter_all(self, path, params=None, paginate=True, page_size=None, 
             item_hook=None, total=False):
         """
         Iterator for the contents of an index endpoint or query.
@@ -954,8 +948,8 @@ class APISession(PDSession):
             pagination yet, i.e. "nested" endpoints like (as of this writing):
             ``/users/{id}/contact_methods`` and ``/services/{id}/integrations``
         :param page_size:
-            If set, the ``page_size`` argument will override the ``default_page_size``
-            parameter on the session and set the ``limit`` parameter to a custom
+            If set, the ``page_size`` argument will override the ``default_page_size`` 
+            parameter on the session and set the ``limit`` parameter to a custom 
             value (default is 100), altering the number of pagination results.
         :param item_hook:
             Callable object that will be invoked for each iteration, i.e. for
@@ -1024,7 +1018,7 @@ class APISession(PDSession):
                 break
             try:
                 response = r.json()
-            except ValueError:
+            except ValueError: 
                 self.log.debug("Stopping iteration on endpoint \"%s\"; API "
                     "responded with invalid JSON.", path)
                 break
@@ -1042,7 +1036,7 @@ class APISession(PDSession):
                         "however many can be gotten, will be included.", path)
                 if 'total' in response:
                     total_count = response['total']
-                else:
+                else: 
                     self.log.debug("Pagination and the \"total\" parameter "
                         "are enabled in iteration, but the index endpoint %s "
                         "responded with no \"total\" property in the response. "
@@ -1050,7 +1044,7 @@ class APISession(PDSession):
                         "first retrieving all records.", path)
                 offset += data['limit']
             for result in response[r_name]:
-                n += 1
+                n += 1 
                 # Call a callable object for each item, i.e. to print progress:
                 if hasattr(item_hook, '__call__'):
                     item_hook(result, n, total_count)
@@ -1061,7 +1055,7 @@ class APISession(PDSession):
         """
         Performs a GET request, returning the JSON-decoded body as a dictionary
 
-        :raises PDClientError: In the event of HTTP error
+        :raises PDClientError: In the event of HTTP error 
         """
         return self.get(path, **kw)
 
@@ -1070,7 +1064,7 @@ class APISession(PDSession):
         """
         Performs a POST request, returning the JSON-decoded body as a dictionary
 
-        :raises PDClientError: In the event of HTTP error
+        :raises PDClientError: In the event of HTTP error 
         """
         return self.post(path, **kw)
 
@@ -1137,9 +1131,9 @@ class APISession(PDSession):
 
         :param method:
             Method of the request
-        :param response:
+        :param response: 
             Response object
-        :param suffix:
+        :param suffix: 
             Optional suffix to append to the key
         :type method: str
         :type response: `requests.Response`_
@@ -1303,7 +1297,7 @@ class APISession(PDSession):
         """Truncated token for secure display/identification purposes."""
         return last_4(self.api_key)
 
-class PDClientError(Exception):
+class PDClientError(Exception): 
     """
     General API errors base class.
     """
